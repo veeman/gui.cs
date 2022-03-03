@@ -67,22 +67,26 @@ namespace Terminal.Gui {
 
 		public bool SupportTrueColor { get; } = (Environment.OSVersion.Version.Build >= 14931);
 
-		public bool WriteToConsole (Size size, ExtendedCharInfo [] charInfoBuffer, Coord coords, SmallRect window)
+		public bool WriteToConsole (Size size, ExtendedCharInfo [] charInfoBuffer, Coord coords, SmallRect window, bool forceUseBasicColor)
 		{
 			if (ScreenBuffer == IntPtr.Zero) {
 				ReadFromConsoleOutput (size, coords, ref window);
 			}
 
-			if (!SupportTrueColor) {
-				var ci = charInfoBuffer.Select (info =>
-					new CharInfo () {
+			if (!SupportTrueColor || forceUseBasicColor) {
+				var i = 0;
+				var ci = new CharInfo [charInfoBuffer.Length];
+				foreach (var info in charInfoBuffer) {
+					ci[i++] = new CharInfo () {
 						Char = new CharUnion () { UnicodeChar = info.Char },
 						Attributes = (ushort)(int)info.Attribute
-					}).ToArray ();
+					};
+				}
+
 				return WriteConsoleOutput (ScreenBuffer, ci, coords, new Coord () { X = window.Left, Y = window.Top }, ref window);
 			}
 
-			return WriteConsoleTrueColor (charInfoBuffer);
+			return WriteConsoleTrueColorOutput (charInfoBuffer);
 		}
 
 		readonly System.Text.StringBuilder stringBuilder = new System.Text.StringBuilder (256*1024);
@@ -93,7 +97,7 @@ namespace Terminal.Gui {
 		readonly char [] SendColorFg = new [] { '\x1b', '[', '3', '8', ';', '5', ';' };
 		readonly char [] SendColorBg = new [] { ';', '4', '8', ';', '5', ';' };
 
-		private bool WriteConsoleTrueColor(ExtendedCharInfo [] charInfoBuffer)
+		private bool WriteConsoleTrueColorOutput(ExtendedCharInfo [] charInfoBuffer)
 		{
 			stringBuilder.Clear ();
 
@@ -120,10 +124,11 @@ namespace Terminal.Gui {
 						stringBuilder.Append (tca.TrueColorBackground.Blue);
 						stringBuilder.Append ('m');
 					} else {
+						var cc = (int)attr;
 						stringBuilder.Append (SendColorFg);
-						stringBuilder.Append (TrueColor.Code4ToCode8 ((int)attr % 16));
+						stringBuilder.Append (TrueColor.Code4ToCode8 (cc % 16));
 						stringBuilder.Append (SendColorBg);
-						stringBuilder.Append (TrueColor.Code4ToCode8 ((int)attr / 16));
+						stringBuilder.Append (TrueColor.Code4ToCode8 (cc / 16));
 						stringBuilder.Append ('m');
 					}
 				}
@@ -828,6 +833,8 @@ namespace Terminal.Gui {
 		public override IClipboard Clipboard => clipboard;
 		internal override int [,,] Contents => contents;
 
+		public override bool SupportsTrueColorOutput => WinConsole.SupportTrueColor;
+
 		public WindowsConsole WinConsole { get; private set; }
 
 		Action<KeyEvent> keyHandler;
@@ -839,6 +846,7 @@ namespace Terminal.Gui {
 		{
 			WinConsole = new WindowsConsole ();
 			clipboard = new WindowsClipboard ();
+			UseTrueColor = true;
 		}
 
 		public override void PrepareToRun (MainLoop mainLoop, Action<KeyEvent> keyHandler, Action<KeyEvent> keyDownHandler, Action<KeyEvent> keyUpHandler, Action<MouseEvent> mouseHandler)
@@ -1660,7 +1668,7 @@ namespace Terminal.Gui {
 			//};
 
 			UpdateCursor ();
-			WinConsole.WriteToConsole (new Size (Cols, Rows), OutputBuffer, bufferCoords, damageRegion);
+			WinConsole.WriteToConsole (new Size (Cols, Rows), OutputBuffer, bufferCoords, damageRegion, !UseTrueColor);
 			// System.Diagnostics.Debugger.Log (0, "debug", $"Region={damageRegion.Right - damageRegion.Left},{damageRegion.Bottom - damageRegion.Top}\n");
 			WindowsConsole.SmallRect.MakeEmpty (ref damageRegion);
 		}
