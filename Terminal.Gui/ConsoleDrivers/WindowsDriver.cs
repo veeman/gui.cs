@@ -861,7 +861,11 @@ namespace Terminal.Gui {
 			mLoop.ProcessInput = (e) => ProcessInput (e);
 
 			mLoop.WinChanged = (e) => {
-				ChangeWin (e);
+				try {
+					ChangeWin (e);
+				} catch (Win32Exception _) {
+					// just ignore any exception, we can not handle it either
+				}
 			};
 		}
 
