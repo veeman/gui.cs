@@ -46,7 +46,7 @@ namespace Terminal.Gui {
 			for (int r = 0; r < rows; r++) {
 				for (int c = 0; c < cols; c++) {
 					contents [r, c, 0] = ' ';
-					contents [r, c, 1] = MakeColor (ConsoleColor.Gray, ConsoleColor.Black);
+					contents [r, c, 1] = MakeColor (ConsoleColor.Gray, ConsoleColor.Black).Value;
 					contents [r, c, 2] = 0;
 				}
 			}
@@ -102,7 +102,7 @@ namespace Terminal.Gui {
 					needMove = false;
 				}
 				contents [crow, ccol, 0] = (int)(uint)rune;
-				contents [crow, ccol, 1] = currentAttribute;
+				contents [crow, ccol, 1] = currentAttribute.Value;
 				contents [crow, ccol, 2] = 1;
 				dirtyLine [crow] = true;
 			} else
@@ -129,7 +129,7 @@ namespace Terminal.Gui {
 			FakeConsole.Clear ();
 		}
 
-		static Attribute MakeColor (ConsoleColor f, ConsoleColor b)
+		static IAttribute MakeColor (ConsoleColor f, ConsoleColor b)
 		{
 			// Encode the colors into the int value.
 			return new Attribute (
@@ -194,7 +194,7 @@ namespace Terminal.Gui {
 			//MockConsole.Clear ();
 		}
 
-		public override Attribute MakeAttribute (Color fore, Color back)
+		public override IAttribute MakeAttribute (Color fore, Color back)
 		{
 			return MakeColor ((ConsoleColor)fore, (ConsoleColor)back);
 		}
@@ -266,8 +266,8 @@ namespace Terminal.Gui {
 			FakeConsole.CursorLeft = savedCol;
 		}
 
-		Attribute currentAttribute;
-		public override void SetAttribute (Attribute c)
+		IAttribute currentAttribute;
+		public override void SetAttribute (IAttribute c)
 		{
 			currentAttribute = c;
 		}
@@ -419,7 +419,7 @@ namespace Terminal.Gui {
 			keyUpHandler (new KeyEvent (map, keyModifiers));
 		}
 
-		public override Attribute GetAttribute ()
+		public override IAttribute GetAttribute ()
 		{
 			return currentAttribute;
 		}
@@ -539,7 +539,7 @@ namespace Terminal.Gui {
 				for (int row = 0; row < rows; row++) {
 					for (int c = 0; c < cols; c++) {
 						contents [row, c, 0] = ' ';
-						contents [row, c, 1] = (ushort)Colors.TopLevel.Normal;
+						contents [row, c, 1] = (ushort)Colors.TopLevel.Normal.Value;
 						contents [row, c, 2] = 0;
 						dirtyLine [row] = true;
 					}

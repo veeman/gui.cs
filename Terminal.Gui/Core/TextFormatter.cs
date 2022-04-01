@@ -118,7 +118,7 @@ namespace Terminal.Gui {
 		TextAlignment textAlignment;
 		VerticalTextAlignment textVerticalAlignment;
 		TextDirection textDirection;
-		Attribute textColor = -1;
+		Attribute textColor = new Attribute(-1);
 		bool needsFormat;
 		Key hotKey;
 		Size size;
@@ -346,7 +346,7 @@ namespace Terminal.Gui {
 		}
 
 		/// <summary>
-		/// Gets or sets whether the <see cref="TextFormatter"/> needs to format the text when <see cref="Draw(Rect, Attribute, Attribute)"/> is called.
+		/// Gets or sets whether the <see cref="TextFormatter"/> needs to format the text when <see cref="Draw(Rect, IAttribute, IAttribute)"/> is called.
 		/// If it is <c>false</c> when Draw is called, the Draw call will be faster.
 		/// </summary>
 		/// <remarks>
@@ -925,7 +925,7 @@ namespace Terminal.Gui {
 		/// <param name="bounds">Specifies the screen-relative location and maximum size for drawing the text.</param>
 		/// <param name="normalColor">The color to use for all text except the hotkey</param>
 		/// <param name="hotColor">The color to use to draw the hotkey</param>
-		public void Draw (Rect bounds, Attribute normalColor, Attribute hotColor)
+		public void Draw (Rect bounds, IAttribute normalColor, IAttribute hotColor)
 		{
 			// With this check, we protect against subclasses with overrides of Text (like Button)
 			if (ustring.IsNullOrEmpty (text)) {

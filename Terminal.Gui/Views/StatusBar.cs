@@ -135,7 +135,7 @@ namespace Terminal.Gui {
 			}
 		}
 
-		Attribute ToggleScheme (Attribute scheme)
+		IAttribute ToggleScheme (IAttribute scheme)
 		{
 			var result = scheme == ColorScheme.Normal ? ColorScheme.HotNormal : ColorScheme.Normal;
 			Driver.SetAttribute (result);

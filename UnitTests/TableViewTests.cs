@@ -566,7 +566,7 @@ namespace Terminal.Gui.Views {
 ";
 			var invertedNormalColor = Application.Driver.MakeAttribute (tv.ColorScheme.Normal.Background, tv.ColorScheme.Normal.Foreground);
 
-			GraphViewTests.AssertDriverColorsAre (expectedColors, new Attribute [] {
+			GraphViewTests.AssertDriverColorsAre (expectedColors, new IAttribute [] {
 				// 0
 				tv.ColorScheme.Normal,				
 				// 1

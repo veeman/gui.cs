@@ -62,8 +62,6 @@ namespace Terminal.Gui.ConsoleDrivers {
 			Application.Init (driver, new FakeMainLoop (() => FakeConsole.ReadKey (true)));
 			driver.Init (() => { });
 
-			var attr = new Attribute ();
-
 			var value = 42;
 			var fg = new Color ();
 			fg = Color.Red;
@@ -72,12 +70,12 @@ namespace Terminal.Gui.ConsoleDrivers {
 			bg = Color.Blue;
 
 			// Test conversion to int
-			attr = new Attribute (value, fg, bg);
+			var attr = new Attribute (value, fg, bg);
 			int value_implicit = (int)attr.Value;
 			Assert.Equal (value, value_implicit);
 
 			// Test conversion from int
-			attr = value;
+			attr = new Attribute(value);
 			Assert.Equal (value, attr.Value);
 
 			driver.End ();

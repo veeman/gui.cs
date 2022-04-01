@@ -43,7 +43,7 @@ namespace Terminal.Gui.Graphs {
 		public void DrawSeries (GraphView graph, Rect drawBounds, RectangleF graphBounds)
 		{
 			if (Fill.Color != null) {
-				Application.Driver.SetAttribute (Fill.Color.Value);
+				Application.Driver.SetAttribute (Fill.Color);
 			}
 
 			foreach (var p in Points.Where (p => graphBounds.Contains (p))) {
@@ -84,7 +84,7 @@ namespace Terminal.Gui.Graphs {
 		/// <param name="barsEvery">How far appart to put each category (in graph space)</param>
 		/// <param name="spacing">How much spacing between bars in a category (should be less than <paramref name="barsEvery"/>/<paramref name="numberOfBarsPerCategory"/>)</param>
 		/// <param name="colors">Array of colors that define bar color in each category.  Length must match <paramref name="numberOfBarsPerCategory"/></param>
-		public MultiBarSeries (int numberOfBarsPerCategory, float barsEvery, float spacing, Attribute [] colors = null)
+		public MultiBarSeries (int numberOfBarsPerCategory, float barsEvery, float spacing, IAttribute [] colors = null)
 		{
 			subSeries = new BarSeries [numberOfBarsPerCategory];
 
@@ -173,7 +173,7 @@ namespace Terminal.Gui.Graphs {
 		/// <summary>
 		/// Overrides the <see cref="Bar.Fill"/> with a fixed color
 		/// </summary>
-		public Attribute OverrideBarColor { get; set; }
+		public IAttribute OverrideBarColor { get; set; } = new Attribute (-1);
 
 		/// <summary>
 		/// True to draw <see cref="Bar.Text"/> along the axis under the bar.  Defaults
@@ -188,7 +188,7 @@ namespace Terminal.Gui.Graphs {
 		/// <returns></returns>
 		protected virtual GraphCellToRender AdjustColor (GraphCellToRender graphCellToRender)
 		{
-			if (OverrideBarColor != null) {
+			if (OverrideBarColor.Value != -1) {
 				graphCellToRender.Color = OverrideBarColor;
 			}
 
@@ -274,8 +274,8 @@ namespace Terminal.Gui.Graphs {
 		{
 			var adjusted = AdjustColor (beingDrawn.Fill);
 
-			if (adjusted.Color != null) {
-				Application.Driver.SetAttribute (adjusted.Color.Value);
+			if (adjusted.Color.Value != -1) {
+				Application.Driver.SetAttribute (adjusted.Color);
 			}
 
 			graph.DrawLine (start, end, adjusted.Rune);

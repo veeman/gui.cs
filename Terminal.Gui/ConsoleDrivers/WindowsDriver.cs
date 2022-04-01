@@ -79,7 +79,7 @@ namespace Terminal.Gui {
 				foreach (var info in charInfoBuffer) {
 					ci[i++] = new CharInfo () {
 						Char = new CharUnion () { UnicodeChar = info.Char },
-						Attributes = (ushort)(int)info.Attribute
+						Attributes = (ushort)(int)info.Attribute.Value
 					};
 				}
 
@@ -103,7 +103,7 @@ namespace Terminal.Gui {
 
 			stringBuilder.Append (SafeCursor);
 
-			Attribute prev = null;
+			IAttribute prev = null;
 			foreach (var info in charInfoBuffer) {
 				var attr = info.Attribute;
 
@@ -124,7 +124,7 @@ namespace Terminal.Gui {
 						stringBuilder.Append (tca.TrueColorBackground.Blue);
 						stringBuilder.Append ('m');
 					} else {
-						var cc = (int)attr;
+						var cc = attr.Value;
 						stringBuilder.Append (SendColorFg);
 						stringBuilder.Append (TrueColor.Code4ToCode8 (cc % 16));
 						stringBuilder.Append (SendColorBg);
@@ -568,7 +568,7 @@ namespace Terminal.Gui {
 
 		public struct ExtendedCharInfo {
 			public char Char { get; set; }
-			public Attribute Attribute { get; set; }
+			public IAttribute Attribute { get; set; }
 		}
 
 		[StructLayout (LayoutKind.Sequential)]
@@ -1556,7 +1556,7 @@ namespace Terminal.Gui {
 					OutputBuffer [position].Attribute = Colors.TopLevel.Normal;
 					OutputBuffer [position].Char = ' ';
 					contents [row, col, 0] = OutputBuffer [position].Char;
-					contents [row, col, 1] = OutputBuffer [position].Attribute;
+					contents [row, col, 1] = OutputBuffer [position].Attribute.Value;
 					contents [row, col, 2] = 0;
 				}
 			}
@@ -1578,7 +1578,7 @@ namespace Terminal.Gui {
 				OutputBuffer [position].Attribute = currentAttribute;
 				OutputBuffer [position].Char = (char)rune;
 				contents [crow, ccol, 0] = (int)(uint)rune;
-				contents [crow, ccol, 1] = currentAttribute;
+				contents [crow, ccol, 1] = currentAttribute.Value;
 				contents [crow, ccol, 2] = 1;
 				WindowsConsole.SmallRect.Update (ref damageRegion, (short)ccol, (short)crow);
 			}
@@ -1605,9 +1605,9 @@ namespace Terminal.Gui {
 				AddRune (rune);
 		}
 
-		Attribute currentAttribute;
+		IAttribute currentAttribute;
 
-		public override void SetAttribute (Attribute c)
+		public override void SetAttribute (IAttribute c)
 		{
 			currentAttribute = c;
 		}
@@ -1622,7 +1622,7 @@ namespace Terminal.Gui {
 			);
 		}
 
-		public override Attribute MakeAttribute (Color fore, Color back)
+		public override IAttribute MakeAttribute (Color fore, Color back)
 		{
 			return MakeColor ((ConsoleColor)fore, (ConsoleColor)back);
 		}
@@ -1688,7 +1688,7 @@ namespace Terminal.Gui {
 			WinConsole = null;
 		}
 
-		public override Attribute GetAttribute ()
+		public override IAttribute GetAttribute ()
 		{
 			return currentAttribute;
 		}

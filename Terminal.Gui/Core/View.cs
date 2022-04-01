@@ -1145,7 +1145,7 @@ namespace Terminal.Gui {
 		/// <para>The hotkey is any character following the hotkey specifier, which is the underscore ('_') character by default.</para>
 		/// <para>The hotkey specifier can be changed via <see cref="HotKeySpecifier"/></para>
 		/// </remarks>
-		public void DrawHotString (ustring text, Attribute hotColor, Attribute normalColor)
+		public void DrawHotString (ustring text, IAttribute hotColor, IAttribute normalColor)
 		{
 			var hotkeySpec = HotKeySpecifier == (Rune)0xffff ? (Rune)'_' : HotKeySpecifier;
 			Application.Driver.SetAttribute (normalColor);
@@ -2723,7 +2723,7 @@ namespace Terminal.Gui {
 		/// </summary>
 		/// <returns><see cref="ColorScheme.Normal"/> if <see cref="Enabled"/> is <see langword="true"/>
 		/// or <see cref="ColorScheme.Disabled"/> if <see cref="Enabled"/> is <see langword="false"/></returns>
-		public Attribute GetNormalColor ()
+		public IAttribute GetNormalColor ()
 		{
 			return Enabled ? ColorScheme.Normal : ColorScheme.Disabled;
 		}

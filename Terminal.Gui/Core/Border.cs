@@ -440,7 +440,7 @@ namespace Terminal.Gui {
 		/// <summary>
 		/// Gets or sets the color for the <see cref="Border"/>
 		/// </summary>
-		public Attribute Effect3DBrush { get; set; }
+		public IAttribute Effect3DBrush { get; set; } = new Attribute (-1);
 
 		/// <summary>
 		/// Calculate the sum of the <see cref="Padding"/> and the <see cref="BorderThickness"/>
@@ -864,11 +864,11 @@ namespace Terminal.Gui {
 			driver.SetAttribute (savedAttribute);
 		}
 
-		private Attribute GetEffect3DBrush ()
+		private IAttribute GetEffect3DBrush ()
 		{
-			return Effect3DBrush == null
+			return Effect3DBrush.Value == -1
 				? new Attribute (Color.Gray, Color.DarkGray)
-				: (Attribute)Effect3DBrush;
+				: Effect3DBrush;
 		}
 
 		private void AddRuneAt (ConsoleDriver driver, int col, int row, Rune ch)

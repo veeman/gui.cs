@@ -520,11 +520,11 @@ namespace UICatalog.Scenarios {
 		}
 
 		class DiscoBarSeries : BarSeries {
-			private Terminal.Gui.Attribute green;
-			private Terminal.Gui.Attribute brightgreen;
-			private Terminal.Gui.Attribute brightyellow;
-			private Terminal.Gui.Attribute red;
-			private Terminal.Gui.Attribute brightred;
+			private Terminal.Gui.IAttribute green;
+			private Terminal.Gui.IAttribute brightgreen;
+			private Terminal.Gui.IAttribute brightyellow;
+			private Terminal.Gui.IAttribute red;
+			private Terminal.Gui.IAttribute brightred;
 
 			public DiscoBarSeries ()
 			{

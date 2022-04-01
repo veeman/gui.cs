@@ -24,8 +24,8 @@ namespace UICatalog.Scenarios {
 		private MenuItem miUnicodeSymbols;
 		private MenuItem miFullPaths;
 		private MenuItem miLeaveLastRow;
-		private Terminal.Gui.Attribute green;
-		private Terminal.Gui.Attribute red;
+		private Terminal.Gui.IAttribute green;
+		private Terminal.Gui.IAttribute red;
 
 		public override void Setup ()
 		{

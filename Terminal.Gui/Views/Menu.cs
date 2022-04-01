@@ -434,7 +434,7 @@ namespace Terminal.Gui {
 			AddKeyBinding (Key.Enter, Command.Accept);
 		}
 
-		internal Attribute DetermineColorSchemeFor (MenuItem item, int index)
+		internal IAttribute DetermineColorSchemeFor (MenuItem item, int index)
 		{
 			if (item != null) {
 				if (index == current) return ColorScheme.Focus;
@@ -938,7 +938,7 @@ namespace Terminal.Gui {
 			for (int i = 0; i < Menus.Length; i++) {
 				var menu = Menus [i];
 				Move (pos, 0);
-				Attribute hotColor, normalColor;
+				IAttribute hotColor, normalColor;
 				if (i == selected && IsMenuOpen) {
 					hotColor = i == selected ? ColorScheme.HotFocus : ColorScheme.HotNormal;
 					normalColor = i == selected ? ColorScheme.Focus :

@@ -1156,7 +1156,7 @@ namespace Terminal.Gui {
 
 	internal class NetDriver : ConsoleDriver {
 
-		Attribute [] OutputAttributeBuffer;
+		Array OutputAttributeBuffer;
 
 		const int COLOR_BLACK = 30;
 		const int COLOR_RED = 31;
@@ -1242,10 +1242,14 @@ namespace Terminal.Gui {
 			var runeWidth = Rune.ColumnWidth (rune);
 			if (Clip.Contains (ccol, crow) && ccol + Math.Max (runeWidth, 1) <= Cols) {
 				var position = crow * Cols + ccol;
-				OutputAttributeBuffer [position] = currentAttribute;
+
+				if (OutputAttributeBuffer.GetType ().GetElementType () == typeof (Attribute))
+					((Attribute [])OutputAttributeBuffer) [position] = !currentAttribute.IsTrueColor ? (Attribute)currentAttribute : new Attribute (currentAttribute);
+				else if (OutputAttributeBuffer.GetType ().GetElementType () == typeof (TrueColorAttribute))
+					((TrueColorAttribute [])OutputAttributeBuffer) [position] = currentAttribute.IsTrueColor ? (TrueColorAttribute)currentAttribute : new TrueColorAttribute (currentAttribute);
 
 				contents [crow, ccol, 0] = (int)(uint)rune;
-				contents [crow, ccol, 1] = currentAttribute;
+				contents [crow, ccol, 1] = currentAttribute.Value;
 				contents [crow, ccol, 2] = 1;
 				dirtyLine [crow] = true;
 
@@ -1422,15 +1426,32 @@ namespace Terminal.Gui {
 		{
 			// Can raise an exception while is still resizing.
 			try {
-				for (int row = 0; row < rows; row++) {
-					for (int c = 0; c < cols; c++) {
-						int position = row * cols + c;
-						OutputAttributeBuffer [position] = Colors.TopLevel.Normal;
+				if (OutputAttributeBuffer.GetType ().GetElementType () == typeof (Attribute)) {
+					var Buffer = (Attribute [])OutputAttributeBuffer;
+					for (int row = 0; row < rows; row++) {
+						for (int c = 0; c < cols; c++) {
+							int position = row * cols + c;
+							Buffer [position] = !Colors.TopLevel.Normal.IsTrueColor ? (Attribute)Colors.TopLevel.Normal : new Attribute(Colors.TopLevel.Normal);
 
-						contents [row, c, 0] = ' ';
-						contents [row, c, 1] = (ushort)Colors.TopLevel.Normal;
-						contents [row, c, 2] = 0;
-						dirtyLine [row] = true;
+							contents [row, c, 0] = ' ';
+							contents [row, c, 1] = (ushort)Colors.TopLevel.Normal.Value;
+							contents [row, c, 2] = 0;
+							dirtyLine [row] = true;
+						}
+					}
+				} else {
+					var Buffer = (TrueColorAttribute [])OutputAttributeBuffer;
+
+					for (int row = 0; row < rows; row++) {
+						for (int c = 0; c < cols; c++) {
+							int position = row * cols + c;
+							Buffer [position] = Colors.TopLevel.Normal.IsTrueColor ? (TrueColorAttribute)Colors.TopLevel.Normal : new TrueColorAttribute (Colors.TopLevel.Normal);
+
+							contents [row, c, 0] = ' ';
+							contents [row, c, 1] = (ushort)Colors.TopLevel.Normal.Value;
+							contents [row, c, 2] = 0;
+							dirtyLine [row] = true;
+						}
 					}
 				}
 			} catch (IndexOutOfRangeException) { }
@@ -1438,7 +1459,7 @@ namespace Terminal.Gui {
 			winChanging = false;
 		}
 
-		public override Attribute MakeAttribute (Color fore, Color back)
+		public override IAttribute MakeAttribute (Color fore, Color back)
 		{
 			return MakeColor ((ConsoleColor)fore, (ConsoleColor)back);
 		}
@@ -1448,7 +1469,7 @@ namespace Terminal.Gui {
 			UpdateScreen ();
 		}
 
-		Attribute redrawAttr = null;
+		IAttribute redrawAttr = new Attribute (0);
 
 		public override void UpdateScreen ()
 		{
@@ -1476,22 +1497,45 @@ namespace Terminal.Gui {
 					if (Console.WindowHeight > 0 && !SetCursorPosition (col, row)) {
 						return;
 					}
-					for (; col < cols; col++) {
-						var attr = OutputAttributeBuffer [row * cols + col];
-						if (attr != redrawAttr) {
-							output.Append (WriteAttributes (attr));
+
+					if (OutputAttributeBuffer.GetType ().GetElementType () == typeof (Attribute)) {
+						for (var Buffer = (Attribute [])OutputAttributeBuffer; col < cols; col++) {
+
+							var attr = Buffer [row * cols + col];
+							if (!attr.Equals (redrawAttr)) {
+								output.Append (WriteAttributes (attr));
+							}
+							if (AlwaysSetPosition && !SetCursorPosition (col, row)) {
+								return;
+							}
+							if (AlwaysSetPosition) {
+								Console.Write ($"{output}{(char)contents [row, col, 0]}");
+							} else {
+								output.Append ((char)contents [row, col, 0]);
+							}
+							contents [row, col, 2] = 0;
+							if (!AlwaysSetPosition && col == cols - 1) {
+								Console.Write (output);
+							}
 						}
-						if (AlwaysSetPosition && !SetCursorPosition (col, row)) {
-							return;
-						}
-						if (AlwaysSetPosition) {
-							Console.Write ($"{output}{(char)contents [row, col, 0]}");
-						} else {
-							output.Append ((char)contents [row, col, 0]);
-						}
-						contents [row, col, 2] = 0;
-						if (!AlwaysSetPosition && col == cols - 1) {
-							Console.Write (output);
+					} else if (OutputAttributeBuffer.GetType ().GetElementType () == typeof (TrueColorAttribute)) {
+						for (var Buffer = (TrueColorAttribute [])OutputAttributeBuffer; col < cols; col++) {
+							var attr = Buffer [row * cols + col];
+							if (!attr.Equals (redrawAttr)) {
+								output.Append (WriteAttributes (attr));
+							}
+							if (AlwaysSetPosition && !SetCursorPosition (col, row)) {
+								return;
+							}
+							if (AlwaysSetPosition) {
+								Console.Write ($"{output}{(char)contents [row, col, 0]}");
+							} else {
+								output.Append ((char)contents [row, col, 0]);
+							}
+							contents [row, col, 2] = 0;
+							if (!AlwaysSetPosition && col == cols - 1) {
+								Console.Write (output);
+							}
 						}
 					}
 				}
@@ -1500,11 +1544,12 @@ namespace Terminal.Gui {
 			UpdateCursor ();
 		}
 
-		System.Text.StringBuilder WriteAttributes (Attribute attr)
+		System.Text.StringBuilder WriteAttributes (IAttribute attr)
 		{
 			System.Text.StringBuilder sb = new System.Text.StringBuilder ();
 
-			if ((UseTrueColor) && (attr is TrueColorAttribute tca)) {
+			if ((UseTrueColor) && (attr.IsTrueColor)) {
+				var tca = (TrueColorAttribute)attr;
 				sb.Append (new [] { '\x1b', '[', '3', '8', ';', '2', ';' });
 				sb.Append (tca.TrueColorForeground.Red);
 				sb.Append (';');
@@ -1522,15 +1567,15 @@ namespace Terminal.Gui {
 				const string CSI = "\x1b[";
 				int bg = 0;
 				int fg = 0;
-				
+
 				IEnumerable<int> values = Enum.GetValues (typeof (ConsoleColor))
 				      .OfType<ConsoleColor> ()
 				      .Select (s => (int)s);
-				if (values.Contains (attr & 0xffff)) {
-					bg = MapColors ((ConsoleColor)(attr & 0xffff), false);
+				if (values.Contains (attr.Value & 0xffff)) {
+					bg = MapColors ((ConsoleColor)(attr.Value & 0xffff), false);
 				}
-				if (values.Contains ((attr >> 16) & 0xffff)) {
-					fg = MapColors ((ConsoleColor)((attr >> 16) & 0xffff));
+				if (values.Contains ((attr.Value >> 16) & 0xffff)) {
+					fg = MapColors ((ConsoleColor)((attr.Value >> 16) & 0xffff));
 				}
 				sb.Append ($"{CSI}{bg};{fg}m");
 			}
@@ -1618,8 +1663,8 @@ namespace Terminal.Gui {
 		{
 		}
 
-		Attribute currentAttribute;
-		public override void SetAttribute (Attribute c)
+		IAttribute currentAttribute;
+		public override void SetAttribute (IAttribute c)
 		{
 			currentAttribute = c;
 		}
@@ -1914,7 +1959,7 @@ namespace Terminal.Gui {
 			};
 		}
 
-		public override Attribute GetAttribute ()
+		public override IAttribute GetAttribute ()
 		{
 			return currentAttribute;
 		}

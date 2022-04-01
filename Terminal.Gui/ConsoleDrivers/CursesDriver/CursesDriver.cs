@@ -60,7 +60,7 @@ namespace Terminal.Gui {
 				rune = MakePrintable (rune);
 				Curses.addch ((int)(uint)rune);
 				contents [crow, ccol, 0] = (int)(uint)rune;
-				contents [crow, ccol, 1] = currentAttribute;
+				contents [crow, ccol, 1] = currentAttribute.Value;
 				contents [crow, ccol, 2] = 1;
 			} else
 				needMove = true;
@@ -122,12 +122,12 @@ namespace Terminal.Gui {
 
 		public override void UpdateScreen () => window.redrawwin ();
 
-		Attribute currentAttribute;
+		IAttribute currentAttribute;
 
-		public override void SetAttribute (Attribute c)
+		public override void SetAttribute (IAttribute c)
 		{
 			currentAttribute = c;
-			Curses.attrset (currentAttribute);
+			Curses.attrset (currentAttribute.Value);
 		}
 
 		public Curses.Window window;
@@ -140,7 +140,7 @@ namespace Terminal.Gui {
 		/// <param name="foreground">Contains the curses attributes for the foreground (color, plus any attributes)</param>
 		/// <param name="background">Contains the curses attributes for the background (color, plus any attributes)</param>
 		/// <returns></returns>
-		public static Attribute MakeColor (short foreground, short background)
+		public static IAttribute MakeColor (short foreground, short background)
 		{
 			var v = (short)((int)foreground | background << 4);
 			//Curses.InitColorPair (++last_color_pair, foreground, background);
@@ -154,7 +154,7 @@ namespace Terminal.Gui {
 				background: MapCursesColor (background));
 		}
 
-		static Attribute MakeColor (Color fore, Color back)
+		static IAttribute MakeColor (Color fore, Color back)
 		{
 			return MakeColor ((short)MapColor (fore), (short)MapColor (back));
 		}
@@ -171,10 +171,10 @@ namespace Terminal.Gui {
 				bool bold = (f & 0x8) != 0;
 				f &= 0x7;
 
-				v = MakeColor ((short)f, (short)b) | (bold ? Curses.A_BOLD : 0);
+				v = MakeColor ((short)f, (short)b).Value | (bold ? Curses.A_BOLD : 0);
 				colorPairs [(int)foreground, (int)background] = v | 0x1000;
 			}
-			SetAttribute (v & 0xffff);
+			SetAttribute (new Attribute(v & 0xffff));
 		}
 
 		Dictionary<int, int> rawPairs = new Dictionary<int, int> ();
@@ -182,10 +182,10 @@ namespace Terminal.Gui {
 		{
 			int key = ((ushort)foreColorId << 16) | (ushort)backgroundColorId;
 			if (!rawPairs.TryGetValue (key, out var v)) {
-				v = MakeColor (foreColorId, backgroundColorId);
+				v = MakeColor (foreColorId, backgroundColorId).Value;
 				rawPairs [key] = v;
 			}
-			SetAttribute (v);
+			SetAttribute (new Attribute(v));
 		}
 
 		static Key MapCursesKey (int cursesKey)
@@ -905,31 +905,31 @@ namespace Terminal.Gui {
 				Colors.Error.HotFocus = MakeColor (Color.Black, Color.Red);
 				Colors.Error.Disabled = MakeColor (Color.DarkGray, Color.White);
 			} else {
-				Colors.TopLevel.Normal = Curses.COLOR_GREEN;
-				Colors.TopLevel.Focus = Curses.COLOR_WHITE;
-				Colors.TopLevel.HotNormal = Curses.COLOR_YELLOW;
-				Colors.TopLevel.HotFocus = Curses.COLOR_YELLOW;
-				Colors.TopLevel.Disabled = Curses.A_BOLD | Curses.COLOR_GRAY;
-				Colors.Base.Normal = Curses.A_NORMAL;
-				Colors.Base.Focus = Curses.A_REVERSE;
-				Colors.Base.HotNormal = Curses.A_BOLD;
-				Colors.Base.HotFocus = Curses.A_BOLD | Curses.A_REVERSE;
-				Colors.Base.Disabled = Curses.A_BOLD | Curses.COLOR_GRAY;
-				Colors.Menu.Normal = Curses.A_REVERSE;
-				Colors.Menu.Focus = Curses.A_NORMAL;
-				Colors.Menu.HotNormal = Curses.A_BOLD;
-				Colors.Menu.HotFocus = Curses.A_NORMAL;
-				Colors.Menu.Disabled = Curses.A_BOLD | Curses.COLOR_GRAY;
-				Colors.Dialog.Normal = Curses.A_REVERSE;
-				Colors.Dialog.Focus = Curses.A_NORMAL;
-				Colors.Dialog.HotNormal = Curses.A_BOLD;
-				Colors.Dialog.HotFocus = Curses.A_NORMAL;
-				Colors.Dialog.Disabled = Curses.A_BOLD | Curses.COLOR_GRAY;
-				Colors.Error.Normal = Curses.A_BOLD;
-				Colors.Error.Focus = Curses.A_BOLD | Curses.A_REVERSE;
-				Colors.Error.HotNormal = Curses.A_BOLD | Curses.A_REVERSE;
-				Colors.Error.HotFocus = Curses.A_REVERSE;
-				Colors.Error.Disabled = Curses.A_BOLD | Curses.COLOR_GRAY;
+				Colors.TopLevel.Normal = new Attribute(Curses.COLOR_GREEN);
+				Colors.TopLevel.Focus = new Attribute (Curses.COLOR_WHITE);
+				Colors.TopLevel.HotNormal = new Attribute (Curses.COLOR_YELLOW);
+				Colors.TopLevel.HotFocus = new Attribute (Curses.COLOR_YELLOW);
+				Colors.TopLevel.Disabled = new Attribute (Curses.A_BOLD | Curses.COLOR_GRAY);
+				Colors.Base.Normal = new Attribute (Curses.A_NORMAL);
+				Colors.Base.Focus = new Attribute (Curses.A_REVERSE);
+				Colors.Base.HotNormal = new Attribute (Curses.A_BOLD);
+				Colors.Base.HotFocus = new Attribute (Curses.A_BOLD | Curses.A_REVERSE);
+				Colors.Base.Disabled = new Attribute (Curses.A_BOLD | Curses.COLOR_GRAY);
+				Colors.Menu.Normal = new Attribute (Curses.A_REVERSE);
+				Colors.Menu.Focus = new Attribute (Curses.A_NORMAL);
+				Colors.Menu.HotNormal = new Attribute (Curses.A_BOLD);
+				Colors.Menu.HotFocus = new Attribute (Curses.A_NORMAL);
+				Colors.Menu.Disabled = new Attribute (Curses.A_BOLD | Curses.COLOR_GRAY);
+				Colors.Dialog.Normal = new Attribute (Curses.A_REVERSE);
+				Colors.Dialog.Focus = new Attribute (Curses.A_NORMAL);
+				Colors.Dialog.HotNormal = new Attribute (Curses.A_BOLD);
+				Colors.Dialog.HotFocus = new Attribute (Curses.A_NORMAL);
+				Colors.Dialog.Disabled = new Attribute (Curses.A_BOLD | Curses.COLOR_GRAY);
+				Colors.Error.Normal = new Attribute (Curses.A_BOLD);
+				Colors.Error.Focus = new Attribute (Curses.A_BOLD | Curses.A_REVERSE);
+				Colors.Error.HotNormal = new Attribute (Curses.A_BOLD | Curses.A_REVERSE);
+				Colors.Error.HotFocus = new Attribute (Curses.A_REVERSE);
+				Colors.Error.Disabled = new Attribute (Curses.A_BOLD | Curses.COLOR_GRAY);
 			}
 		}
 
@@ -942,7 +942,7 @@ namespace Terminal.Gui {
 					//Curses.attrset (Colors.TopLevel.Normal);
 					//Curses.addch ((int)(uint)' ');
 					contents [row, col, 0] = ' ';
-					contents [row, col, 1] = Colors.TopLevel.Normal;
+					contents [row, col, 1] = Colors.TopLevel.Normal.Value;
 					contents [row, col, 2] = 0;
 				}
 			}
@@ -1046,7 +1046,7 @@ namespace Terminal.Gui {
 			throw new ArgumentException ("Invalid curses color code");
 		}
 
-		public override Attribute MakeAttribute (Color fore, Color back)
+		public override IAttribute MakeAttribute (Color fore, Color back)
 		{
 			var f = MapColor (fore);
 			//return MakeColor ((short)(f & 0xffff), (short)MapColor (back)) | ((f & Curses.A_BOLD) != 0 ? Curses.A_BOLD : 0);
@@ -1093,7 +1093,7 @@ namespace Terminal.Gui {
 			//Curses.mouseinterval (lastMouseInterval);
 		}
 
-		public override Attribute GetAttribute ()
+		public override IAttribute GetAttribute ()
 		{
 			return currentAttribute;
 		}

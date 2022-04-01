@@ -124,7 +124,7 @@ namespace Terminal.Gui.Views {
 		/// </summary>
 		/// <param name="expectedLook">Numbers between 0 and 9 for each row/col of the console.  Must be valid indexes of <paramref name="expectedColors"/></param>
 		/// <param name="expectedColors"></param>
-		public static void AssertDriverColorsAre (string expectedLook, Attribute[] expectedColors)
+		public static void AssertDriverColorsAre (string expectedLook, IAttribute[] expectedColors)
 		{
 #pragma warning restore xUnit1013 // Public method should be marked as test
 

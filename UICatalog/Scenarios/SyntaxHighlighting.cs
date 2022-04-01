@@ -64,9 +64,9 @@ namespace UICatalog.Scenarios {
 		private class SqlTextView : TextView{
 
 			private HashSet<string> keywords = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
-			private Attribute blue;
-			private Attribute white;
-			private Attribute magenta;
+			private IAttribute blue;
+			private IAttribute white;
+			private IAttribute magenta;
 
 
 		public void Init()

@@ -200,7 +200,7 @@ namespace Terminal.Gui {
 		///<inheritdoc/>
 		public override void Redraw (Rect bounds)
 		{
-			Attribute currentAttribute;
+			IAttribute currentAttribute;
 			var current = ColorScheme.Focus;
 			Driver.SetAttribute (current);
 			Move (0, 0);
@@ -212,8 +212,8 @@ namespace Terminal.Gui {
 			Source.Position = displayStart;
 			var n = source.Read (data, 0, data.Length);
 
-			int activeColor = ColorScheme.HotNormal;
-			int trackingColor = ColorScheme.HotFocus;
+			var activeColor = ColorScheme.HotNormal;
+			var trackingColor = ColorScheme.HotFocus;
 
 			for (int line = 0; line < frame.Height; line++) {
 				var lineRect = new Rect (0, line, frame.Width, 1);
@@ -266,7 +266,7 @@ namespace Terminal.Gui {
 				}
 			}
 
-			void SetAttribute (Attribute attribute)
+			void SetAttribute (IAttribute attribute)
 			{
 				if (currentAttribute != attribute) {
 					currentAttribute = attribute;

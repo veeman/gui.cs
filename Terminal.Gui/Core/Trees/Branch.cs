@@ -90,7 +90,7 @@ namespace Terminal.Gui.Trees {
 		{
 			// true if the current line of the tree is the selected one and control has focus
 			bool isSelected = tree.IsSelected (Model) && tree.HasFocus;
-			Attribute lineColor = isSelected ? colorScheme.Focus : colorScheme.Normal;
+			IAttribute lineColor = isSelected ? colorScheme.Focus : colorScheme.Normal;
 
 			driver.SetAttribute (lineColor);
 
@@ -117,7 +117,7 @@ namespace Terminal.Gui.Trees {
 
 			// pick color for expanded symbol
 			if (tree.Style.ColorExpandSymbol || tree.Style.InvertExpandSymbolColors) {
-				Attribute color;
+				IAttribute color;
 
 				if (tree.Style.ColorExpandSymbol) {
 					color = isSelected ? tree.ColorScheme.HotFocus : tree.ColorScheme.HotNormal;

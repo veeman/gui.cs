@@ -85,7 +85,7 @@ namespace Terminal.Gui {
 	/// <summary>
 	/// 24bit color. Support translate it to 4bit(Windows) and 8bit(Linux) color
 	/// </summary>
-	public struct TrueColor {
+	public struct TrueColor : IEquatable<TrueColor> {
 		/// <summary>
 		/// Red color component.
 		/// </summary>
@@ -117,8 +117,7 @@ namespace Terminal.Gui {
 		/// </summary>
 		public static TrueColor Color4 (int code)
 		{
-			if (code == 7) { code = 8; }
-			else if (code == 8) { code = 7; }
+			if (code == 7) { code = 8; } else if (code == 8) { code = 7; }
 
 			if (code == 8) { return new TrueColor (192, 192, 192); }
 
@@ -160,6 +159,73 @@ namespace Terminal.Gui {
 				return code;
 			return (code & 8) + (code & 2) + 4 * (code & 1) + (code & 4) / 4;
 		}
+
+		/// <summary>
+		/// Equality operator
+		/// </summary>
+		public override bool Equals (object obj)
+		{
+			return obj is IAttribute && Equals ((IAttribute)obj);
+		}
+
+		/// <summary>
+		/// Hash code 
+		/// </summary>
+		public override int GetHashCode ()
+		{
+			return Red << 16 | Green << 8 | Red;
+		}
+
+		/// <summary>
+		/// Equality comparer tests R, G, and B for equality
+		/// /// </summary>
+		public bool Equals (TrueColor other)
+		{
+			return (Red == other.Red) && (Green == other.Green) && (Blue == other.Blue);
+		}
+
+		/// <summary>
+		/// Equality operator overload
+		/// </summary>
+		public static bool operator == (TrueColor A, TrueColor B)
+		{
+			return (A.Red == B.Red) && (A.Green == B.Green) && (A.Blue == B.Blue);
+		}
+
+		/// <summary>
+		/// Inequality operator overload
+		/// </summary>
+		public static bool operator != (TrueColor A, TrueColor B)
+		{
+			return (A.Red != B.Red) || (A.Green != B.Green) || (A.Blue != B.Blue);
+		}
+
+	}
+
+	/// <summary>
+	/// Attribute interface implements the basic functionality of both types, <see cref="Attribute"/> or <see cref="TrueColorAttribute"/>
+	/// </summary>
+	public interface IAttribute : IEquatable<IAttribute> {
+		/// <summary>
+		/// The color attribute value.
+		/// </summary>
+		int Value { get; }
+
+		/// <summary>
+		/// The foreground color.
+		/// </summary>
+		Color Foreground { get; }
+
+		/// <summary>
+		/// The background color.
+		/// </summary>
+		Color Background { get; }
+
+		/// <summary>
+		/// Indicates if this attribute represents a true color value
+		/// </summary>
+		bool IsTrueColor { get; }
+
 	}
 
 	/// <summary>
@@ -170,7 +236,7 @@ namespace Terminal.Gui {
 	///   scenarios, they encode both the foreground and the background color and are used in the <see cref="ColorScheme"/>
 	///   class to define color schemes that can be used in your application.
 	/// </remarks>
-	public class Attribute : IEquatable<Attribute> {
+	public struct Attribute : IAttribute {
 		/// <summary>
 		/// The color attribute value.
 		/// </summary>
@@ -183,6 +249,12 @@ namespace Terminal.Gui {
 		/// The background color.
 		/// </summary>
 		public Color Background { get; }
+
+		/// <summary>
+		/// This is not a true color attribute
+		/// </summary>
+		public bool IsTrueColor { get => false; }
+
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Attribute"/> class with only the value passed to
@@ -234,10 +306,23 @@ namespace Terminal.Gui {
 		/// <param name="color">The color.</param>
 		public Attribute (Color color) : this (color, color) { }
 
-		/// <inheritdoc/>
-		public bool Equals (Attribute other)
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Attribute"/> struct
+		///  from a true color or 16/256 color source
+		/// </summary>
+		public Attribute (IAttribute Source)
 		{
-			return (Value == other.Value) && (Foreground == other.Foreground) && (Background == other.Background);
+			if (Source.IsTrueColor) {
+				var T = ((TrueColorAttribute)Source);
+				Value = T.Value;
+				Foreground = T.Foreground;
+				Background = T.Background;
+			} else {
+				var T = ((Attribute)Source);
+				Value = T.Value;
+				Foreground = T.Foreground;
+				Background = T.Background;
+			}
 		}
 
 		/// <summary>
@@ -245,7 +330,7 @@ namespace Terminal.Gui {
 		/// </summary>
 		/// <returns>The integer value stored in the attribute.</returns>
 		/// <param name="c">The attribute to convert</param>
-		public static implicit operator int (Attribute c) => c?.Value ?? 0;
+		public static implicit operator int (Attribute c) => c.Value;
 
 		/// <summary>
 		/// Implicitly convert an integer value into an <see cref="Attribute"/>
@@ -254,13 +339,19 @@ namespace Terminal.Gui {
 		/// <param name="v">value</param>
 		public static implicit operator Attribute (int v) => new Attribute (v);
 
+		/// <inheritdoc/>
+		public bool Equals (IAttribute other)
+		{
+			return (Value == other.Value) && (Foreground == other.Foreground) && (Background == other.Background);
+		}
+
 		/// <summary>
 		/// Creates an <see cref="Attribute"/> from the specified foreground and background.
 		/// </summary>
 		/// <returns>The make.</returns>
 		/// <param name="foreground">Foreground color to use.</param>
 		/// <param name="background">Background color to use.</param>
-		public static Attribute Make (Color foreground, Color background)
+		public static IAttribute Make (Color foreground, Color background)
 		{
 			if (Application.Driver == null)
 				throw new InvalidOperationException ("The Application has not been initialized");
@@ -271,7 +362,7 @@ namespace Terminal.Gui {
 		/// Gets the current <see cref="Attribute"/> from the driver.
 		/// </summary>
 		/// <returns>The current attribute.</returns>
-		public static Attribute Get ()
+		public static IAttribute Get ()
 		{
 			if (Application.Driver == null)
 				throw new InvalidOperationException ("The Application has not been initialized");
@@ -287,17 +378,76 @@ namespace Terminal.Gui {
 	/// <summary>
 	/// Defines a true color attribute.
 	/// </summary>
-	public class TrueColorAttribute : Attribute {
+	public struct TrueColorAttribute : IAttribute {
+		/// <summary>
+		/// The color attribute value.
+		/// </summary>
+		public int Value { get; }
+		/// <summary>
+		/// The foreground color.
+		/// </summary>
+		public Color Foreground { get; }
+		/// <summary>
+		/// The background color.
+		/// </summary>
+		public Color Background { get; }
+
+		/// <summary>
+		/// This is a true color attribute
+		/// </summary>
+		public bool IsTrueColor { get => true; }
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TrueColorAttribute"/> struct.
 		/// </summary>
 		/// <param name="foreground">Foreground</param>
 		/// <param name="background">Background</param>
 		public TrueColorAttribute (TrueColor foreground, TrueColor background)
-			: base((Color)TrueColor.GetCode4 (foreground), (Color)TrueColor.GetCode4 (background))
 		{
+			Foreground = (Color)TrueColor.GetCode4 (foreground);
+			Background = (Color)TrueColor.GetCode4 (background);
+			Value = Attribute.Make (Foreground, Background).Value;
 			TrueColorForeground = foreground;
 			TrueColorBackground = background;
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="TrueColorAttribute"/> struct specifying all the properties (pre-calculated)
+		/// </summary>
+		/// <param name="foreground">Foreground</param>
+		/// <param name="background">Background</param>
+		/// <param name="Value">Compiled/calculated value</param>
+		/// <param name="simplecolorforeground">16 color foreground</param>
+		/// <param name="simplecolorbackground">16 color background</param>
+		public TrueColorAttribute (TrueColor foreground, TrueColor background, int Value, Color simplecolorforeground, Color simplecolorbackground)
+		{
+			Foreground = simplecolorforeground;
+			Background = simplecolorbackground;
+			TrueColorForeground = foreground;
+			TrueColorBackground = background;
+			this.Value = Value;
+		}
+
+		/// <summary>
+		/// Constructor for converting an existing IAttribute (of 16/256 color or true color type)
+		/// </summary>
+		public TrueColorAttribute (IAttribute Source)
+		{
+			if (Source.IsTrueColor) {
+				var T = ((TrueColorAttribute)Source);
+				Value = T.Value;
+				Foreground = T.Foreground;
+				Background = T.Background;
+				TrueColorForeground = T.TrueColorForeground;
+				TrueColorBackground = T.TrueColorBackground;
+			} else {
+				var T = ((Attribute)Source);
+				Value = T.Value;
+				Foreground = T.Foreground;
+				Background = T.Background;
+				TrueColorForeground = TrueColor.Color4 ((int)T.Foreground);
+				TrueColorBackground = TrueColor.Color4 ((int)T.Background);
+			}
 		}
 
 		/// <summary>
@@ -305,7 +455,7 @@ namespace Terminal.Gui {
 		///  with the same colors for the foreground and background.
 		/// </summary>
 		/// <param name="color">The color.</param>
-		public TrueColorAttribute (TrueColor color) : this(color, color) { }
+		public TrueColorAttribute (TrueColor color) : this (color, color) { }
 
 		/// <summary>
 		/// The foreground color.
@@ -315,6 +465,65 @@ namespace Terminal.Gui {
 		/// The background color.
 		/// </summary>
 		public TrueColor TrueColorBackground { get; }
+
+		/// <summary>
+		/// Implicit conversion from an <see cref="TrueColorAttribute"/> to the underlying Int32 representation
+		/// </summary>
+		/// <returns>The integer value stored in the attribute.</returns>
+		/// <param name="c">The attribute to convert</param>
+		public static implicit operator int (TrueColorAttribute c) => c.Value;
+
+		/// <summary>
+		/// Equality comparer compares this true color attribute to another true color attribute or 16-color/256-color attribute
+		/// </summary>
+		public bool Equals (IAttribute other)
+		{
+			if (!other.IsTrueColor)
+				return (Value == other.Value) && (Foreground == other.Foreground) && (Background == other.Background);
+			var real_other = (TrueColorAttribute)other;
+			return (TrueColorForeground == real_other.TrueColorForeground) && (TrueColorBackground == real_other.TrueColorBackground) && (Value == other.Value) && (Foreground == other.Foreground) && (Background == other.Background);
+		}
+
+		/// <summary>
+		/// Hash code derived from the <see cref="Value"/> property
+		/// </summary>
+		public override int GetHashCode ()
+		{
+			return Value;
+		}
+
+		/// <summary>
+		/// Equality operator
+		/// </summary>
+		public override bool Equals (object obj)
+		{
+			return obj is IAttribute && Equals ((IAttribute)obj);
+		}
+
+		/// <summary>
+		/// Equality operator
+		/// </summary>
+		public static bool operator ==(TrueColorAttribute A, TrueColorAttribute B)
+		{
+			return A.Equals (B);
+		}
+
+		/// <summary>
+		/// Inequality operator
+		/// </summary>
+		public static bool operator != (TrueColorAttribute A, TrueColorAttribute B)
+		{
+			return !A.Equals (B);
+		}
+
+		/// <summary>
+		/// ToString appearance
+		/// </summary>
+		public override string ToString ()
+		{
+			return String.Format ("F: ({0},{1},{2}), B: ({3},{4},{5}), V: {6}", TrueColorForeground.Red, TrueColorForeground.Green, TrueColorForeground.Blue, TrueColorBackground.Red, TrueColorBackground.Green, TrueColorBackground.Blue, Value);
+		}
+
 	}
 
 	/// <summary>
@@ -323,41 +532,41 @@ namespace Terminal.Gui {
 	/// views contained inside.
 	/// </summary>
 	public class ColorScheme : IEquatable<ColorScheme> {
-		Attribute _normal = Attribute.Default;
-		Attribute _focus = Attribute.Default;
-		Attribute _hotNormal = Attribute.Default;
-		Attribute _hotFocus = Attribute.Default;
-		Attribute _disabled = Attribute.Default;
+		IAttribute _normal = Attribute.Default;
+		IAttribute _focus = Attribute.Default;
+		IAttribute _hotNormal = Attribute.Default;
+		IAttribute _hotFocus = Attribute.Default;
+		IAttribute _disabled = Attribute.Default;
 		internal string caller = "";
 
 		/// <summary>
 		/// The default color for text, when the view is not focused.
 		/// </summary>
-		public Attribute Normal { get { return _normal; } set { _normal = SetAttribute (value); } }
+		public IAttribute Normal { get { return _normal; } set { _normal = SetAttribute (value); } }
 
 		/// <summary>
 		/// The color for text when the view has the focus.
 		/// </summary>
-		public Attribute Focus { get { return _focus; } set { _focus = SetAttribute (value); } }
+		public IAttribute Focus { get { return _focus; } set { _focus = SetAttribute (value); } }
 
 		/// <summary>
 		/// The color for the hotkey when a view is not focused
 		/// </summary>
-		public Attribute HotNormal { get { return _hotNormal; } set { _hotNormal = SetAttribute (value); } }
+		public IAttribute HotNormal { get { return _hotNormal; } set { _hotNormal = SetAttribute (value); } }
 
 		/// <summary>
 		/// The color for the hotkey when the view is focused.
 		/// </summary>
-		public Attribute HotFocus { get { return _hotFocus; } set { _hotFocus = SetAttribute (value); } }
+		public IAttribute HotFocus { get { return _hotFocus; } set { _hotFocus = SetAttribute (value); } }
 
 		/// <summary>
 		/// The default color for text, when the view is disabled.
 		/// </summary>
-		public Attribute Disabled { get { return _disabled; } set { _disabled = SetAttribute (value); } }
+		public IAttribute Disabled { get { return _disabled; } set { _disabled = SetAttribute (value); } }
 
 		bool preparingScheme = false;
 
-		Attribute SetAttribute (Attribute attribute, [CallerMemberName] string callerMemberName = null)
+		IAttribute SetAttribute (IAttribute attribute, [CallerMemberName] string callerMemberName = null)
 		{
 			if (!Application._initialized && !preparingScheme)
 				return attribute;
@@ -499,11 +708,11 @@ namespace Terminal.Gui {
 		public bool Equals (ColorScheme other)
 		{
 			return other != null &&
-			       EqualityComparer<Attribute>.Default.Equals (_normal, other._normal) &&
-			       EqualityComparer<Attribute>.Default.Equals (_focus, other._focus) &&
-			       EqualityComparer<Attribute>.Default.Equals (_hotNormal, other._hotNormal) &&
-			       EqualityComparer<Attribute>.Default.Equals (_hotFocus, other._hotFocus) &&
-			       EqualityComparer<Attribute>.Default.Equals (_disabled, other._disabled);
+			       EqualityComparer<IAttribute>.Default.Equals (_normal, other._normal) &&
+			       EqualityComparer<IAttribute>.Default.Equals (_focus, other._focus) &&
+			       EqualityComparer<IAttribute>.Default.Equals (_hotNormal, other._hotNormal) &&
+			       EqualityComparer<IAttribute>.Default.Equals (_hotFocus, other._hotFocus) &&
+			       EqualityComparer<IAttribute>.Default.Equals (_disabled, other._disabled);
 		}
 
 		/// <summary>
@@ -901,7 +1110,7 @@ namespace Terminal.Gui {
 		/// Selects the specified attribute as the attribute to use for future calls to AddRune, AddString.
 		/// </summary>
 		/// <param name="c">C.</param>
-		public abstract void SetAttribute (Attribute c);
+		public abstract void SetAttribute (IAttribute c);
 
 		/// <summary>
 		/// Set Colors from limit sets of colors.
@@ -1441,12 +1650,12 @@ namespace Terminal.Gui {
 		/// <param name="fore">Foreground.</param>
 		/// <param name="back">Background.</param>
 		/// <returns></returns>
-		public abstract Attribute MakeAttribute (Color fore, Color back);
+		public abstract IAttribute MakeAttribute (Color fore, Color back);
 
 		/// <summary>
 		/// Gets the current <see cref="Attribute"/>.
 		/// </summary>
 		/// <returns>The current attribute.</returns>
-		public abstract Attribute GetAttribute ();
+		public abstract IAttribute GetAttribute ();
 	}
 }

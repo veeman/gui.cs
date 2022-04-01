@@ -1848,7 +1848,7 @@ namespace Terminal.Gui {
 
 		/// <summary>
 		/// Sets the <see cref="View.Driver"/> to an appropriate color for rendering the given <paramref name="idx"/> of the
-		/// current <paramref name="line"/>.  Override to provide custom coloring by calling <see cref="ConsoleDriver.SetAttribute(Attribute)"/>
+		/// current <paramref name="line"/>.  Override to provide custom coloring by calling <see cref="ConsoleDriver.SetAttribute(IAttribute)"/>
 		/// Defaults to <see cref="ColorScheme.Normal"/>.
 		/// </summary>
 		/// <param name="line"></param>
@@ -1860,7 +1860,7 @@ namespace Terminal.Gui {
 
 		/// <summary>
 		/// Sets the <see cref="View.Driver"/> to an appropriate color for rendering the given <paramref name="idx"/> of the
-		/// current <paramref name="line"/>.  Override to provide custom coloring by calling <see cref="ConsoleDriver.SetAttribute(Attribute)"/>
+		/// current <paramref name="line"/>.  Override to provide custom coloring by calling <see cref="ConsoleDriver.SetAttribute(IAttribute)"/>
 		/// Defaults to <see cref="ColorScheme.Focus"/>.
 		/// </summary>
 		/// <param name="line"></param>
@@ -1872,7 +1872,7 @@ namespace Terminal.Gui {
 
 		/// <summary>
 		/// Sets the <see cref="View.Driver"/> to an appropriate color for rendering the given <paramref name="idx"/> of the
-		/// current <paramref name="line"/>.  Override to provide custom coloring by calling <see cref="ConsoleDriver.SetAttribute(Attribute)"/>
+		/// current <paramref name="line"/>.  Override to provide custom coloring by calling <see cref="ConsoleDriver.SetAttribute(IAttribute)"/>
 		/// Defaults to <see cref="ColorScheme.HotFocus"/>.
 		/// </summary>
 		/// <param name="line"></param>

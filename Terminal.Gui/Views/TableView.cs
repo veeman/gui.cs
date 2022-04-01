@@ -538,7 +538,7 @@ namespace Terminal.Gui {
 		/// <param name="cellColor"></param>
 		/// <param name="render"></param>
 		/// <param name="isPrimaryCell"></param>
-		protected virtual void RenderCell (Attribute cellColor, string render,bool isPrimaryCell)
+		protected virtual void RenderCell (IAttribute cellColor, string render,bool isPrimaryCell)
 		{
 			// If the cell is the selected col/row then draw the first rune in inverted colors
 			// this allows the user to track which cell is the active one during a multi cell

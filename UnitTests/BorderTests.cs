@@ -121,7 +121,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X - drawMarginFrame - sumThickness.Left;
 					c < frame.Right + drawMarginFrame + sumThickness.Right; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.Red, color.Background);
 				}
 			}
@@ -132,7 +132,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X - drawMarginFrame - sumThickness.Left;
 					c < frame.X - drawMarginFrame - padding.Left; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.Red, color.Background);
 				}
 			}
@@ -143,7 +143,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.Right + drawMarginFrame + padding.Right;
 					c < frame.Right + drawMarginFrame - sumThickness.Right; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.Red, color.Background);
 				}
 			}
@@ -154,7 +154,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X - drawMarginFrame - sumThickness.Left;
 					c < frame.Right + drawMarginFrame + sumThickness.Right; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.Red, color.Background);
 				}
 			}
@@ -165,7 +165,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X - drawMarginFrame - padding.Left;
 					c < frame.Right + drawMarginFrame + padding.Right; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.BrightGreen, color.Background);
 				}
 			}
@@ -176,7 +176,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X - drawMarginFrame - padding.Left;
 					c < frame.X - drawMarginFrame; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.BrightGreen, color.Background);
 				}
 			}
@@ -187,7 +187,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.Right + drawMarginFrame;
 					c < frame.Right + drawMarginFrame - padding.Right; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.BrightGreen, color.Background);
 				}
 			}
@@ -198,7 +198,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X - drawMarginFrame - padding.Left;
 					c < frame.Right + drawMarginFrame + padding.Right; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.BrightGreen, color.Background);
 				}
 			}
@@ -223,7 +223,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X - drawMarginFrame;
 					c <= frame.Right + drawMarginFrame - 1; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					var rune = (Rune)driver.Contents [r, c, 0];
 					Assert.Equal (Color.Black, color.Background);
 					if (c == frame.X - drawMarginFrame && r == frame.Y - drawMarginFrame) {
@@ -253,7 +253,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X - drawMarginFrame - sumThickness.Left + effect3DOffset.X;
 					c < frame.Right + drawMarginFrame + sumThickness.Right + effect3DOffset.X; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.DarkGray, color.Background);
 				}
 			}
@@ -264,7 +264,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X - drawMarginFrame - sumThickness.Left + effect3DOffset.X;
 					c < frame.X - drawMarginFrame - sumThickness.Left; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.DarkGray, color.Background);
 				}
 			}
@@ -275,7 +275,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.Right + drawMarginFrame + sumThickness.Right;
 					c < frame.Right + drawMarginFrame + sumThickness.Right + effect3DOffset.X; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.DarkGray, color.Background);
 				}
 			}
@@ -286,7 +286,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X - drawMarginFrame - sumThickness.Left + effect3DOffset.X;
 					c < frame.Right + drawMarginFrame + sumThickness.Right + effect3DOffset.X; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.DarkGray, color.Background);
 				}
 			}
@@ -295,7 +295,7 @@ namespace Terminal.Gui.Core {
 			for (int r = frame.Y; r < frame.Y + frame.Height; r++) {
 				for (int c = frame.X; c < frame.X + frame.Width; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.BrightGreen, color.Foreground);
 					Assert.Equal (Color.Black, color.Background);
 				}
@@ -349,7 +349,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X;
 					c < frame.Right; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.Red, color.Background);
 				}
 			}
@@ -360,7 +360,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X;
 					c < Math.Min (frame.X + borderThickness.Left, frame.Right); c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.Red, color.Background);
 				}
 			}
@@ -371,7 +371,7 @@ namespace Terminal.Gui.Core {
 				for (int c = Math.Max (frame.Right - borderThickness.Right, frame.X);
 					c < frame.Right; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.Red, color.Background);
 				}
 			}
@@ -382,7 +382,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X;
 					c < frame.Right; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.Red, color.Background);
 				}
 			}
@@ -393,7 +393,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X + borderThickness.Left;
 					c < frame.Right - borderThickness.Right; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.BrightGreen, color.Background);
 				}
 			}
@@ -404,7 +404,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X + borderThickness.Left;
 					c < Math.Min (frame.X + sumThickness.Left, frame.Right - borderThickness.Right); c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.BrightGreen, color.Background);
 				}
 			}
@@ -417,7 +417,7 @@ namespace Terminal.Gui.Core {
 					c < Math.Max (frame.Right - borderThickness.Right, frame.X + sumThickness.Left); c++) {
 
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.BrightGreen, color.Background);
 				}
 			}
@@ -428,7 +428,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X + borderThickness.Left;
 					c < frame.Right - borderThickness.Right; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.BrightGreen, color.Background);
 				}
 			}
@@ -453,7 +453,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X + sumThickness.Left;
 					c <= frame.Right - sumThickness.Right - 1; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					var rune = (Rune)driver.Contents [r, c, 0];
 					Assert.Equal (Color.Black, color.Background);
 					if (c == frame.X + sumThickness.Left && r == frame.Y + sumThickness.Top) {
@@ -488,7 +488,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X + effect3DOffset.X;
 					c < frame.Right + effect3DOffset.X; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.DarkGray, color.Background);
 				}
 			}
@@ -499,7 +499,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X + effect3DOffset.X;
 					c < frame.X; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.DarkGray, color.Background);
 				}
 			}
@@ -510,7 +510,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.Right;
 					c < frame.Right + effect3DOffset.X; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.DarkGray, color.Background);
 				}
 			}
@@ -521,7 +521,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X + effect3DOffset.X;
 					c < frame.Right + effect3DOffset.X; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.DarkGray, color.Background);
 				}
 			}
@@ -532,7 +532,7 @@ namespace Terminal.Gui.Core {
 				for (int c = frame.X + drawMarginFrame + sumThickness.Left;
 					c < frame.Right - drawMarginFrame - sumThickness.Right; c++) {
 
-					var color = (Attribute)driver.Contents [r, c, 1];
+					var color = new Attribute(driver.Contents [r, c, 1]);
 					Assert.Equal (Color.BrightGreen, color.Foreground);
 					Assert.Equal (Color.Black, color.Background);
 				}

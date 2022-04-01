@@ -115,7 +115,7 @@ namespace UICatalog.Scenarios {
 		}
 
 		class TableViewColors : TableView {
-			protected override void RenderCell (Terminal.Gui.Attribute cellColor, string render, bool isPrimaryCell)
+			protected override void RenderCell (Terminal.Gui.IAttribute cellColor, string render, bool isPrimaryCell)
 			{
 				int unicorns = render.IndexOf ("unicorns",StringComparison.CurrentCultureIgnoreCase);
 				int rainbows = render.IndexOf ("rainbows", StringComparison.CurrentCultureIgnoreCase);
