@@ -173,15 +173,24 @@ namespace Terminal.Gui {
 		/// <summary>
 		/// The color attribute value.
 		/// </summary>
-		public int Value { get; }
+		public int Value { get; private set; }
 		/// <summary>
 		/// The foreground color.
 		/// </summary>
-		public Color Foreground { get; }
+		public Color Foreground { get; private set; }
 		/// <summary>
 		/// The background color.
 		/// </summary>
-		public Color Background { get; }
+		public Color Background { get; private set; }
+
+		/// <summary>
+		/// The foreground color as a <see cref="TrueColor"/>.
+		/// </summary>
+		public TrueColor TrueColorForeground { get; private set; }
+		/// <summary>
+		/// The background color as a <see cref="TrueColor"/>.
+		/// </summary>
+		public TrueColor TrueColorBackground { get; private set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Attribute"/> class with only the value passed to
@@ -199,10 +208,12 @@ namespace Terminal.Gui {
 			Value = value;
 			Foreground = foreground;
 			Background = background;
+
+			PopulateTrueColorsFromConsoleColors ();
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="Attribute"/> struct.
+		/// Initializes a new instance of the <see cref="Attribute"/> class.
 		/// </summary>
 		/// <param name="value">Value.</param>
 		/// <param name="foreground">Foreground</param>
@@ -212,10 +223,12 @@ namespace Terminal.Gui {
 			Value = value;
 			Foreground = foreground;
 			Background = background;
+
+			PopulateTrueColorsFromConsoleColors ();
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="Attribute"/> struct.
+		/// Initializes a new instance of the <see cref="Attribute"/> class.
 		/// </summary>
 		/// <param name="foreground">Foreground</param>
 		/// <param name="background">Background</param>
@@ -224,14 +237,54 @@ namespace Terminal.Gui {
 			Value = Make (foreground, background).Value;
 			Foreground = foreground;
 			Background = background;
+
+			PopulateTrueColorsFromConsoleColors ();
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="Attribute"/> struct
+		/// Initializes a new instance of the <see cref="Attribute"/> class
 		///  with the same colors for the foreground and background.
 		/// </summary>
 		/// <param name="color">The color.</param>
 		public Attribute (Color color) : this (color, color) { }
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Attribute"/> class.  Populates
+		/// <see cref="TrueColorBackground"/> and <see cref="TrueColorForeground"/>. Also computes
+		/// <see cref="Foreground"/> and <see cref="Background"/> (basic console colors) in case
+		/// driver does not support true color rendering.
+		/// </summary>
+		/// <param name="trueColorForeground"></param>
+		/// <param name="trueColorBackground"></param>
+		public Attribute (TrueColor trueColorForeground, TrueColor trueColorBackground)
+		{
+			TrueColorForeground = trueColorForeground;
+			TrueColorBackground = trueColorBackground;
+
+			PopulateConsoleColorsFromTrueColors ();
+		}
+
+
+		/// <summary>
+		/// <para>
+		/// Initializes a new instance of the <see cref="Attribute"/> class.  Populates
+		/// <see cref="TrueColorBackground"/> and <see cref="TrueColorForeground"/> with explicit
+		/// fallback values for <see cref="Foreground"/> and <see cref="Background"/> (in case
+		/// driver does not support true color rendering). 
+		/// </para>
+		/// <remarks>If you do not want to manually specify the fallback colors use <see cref="Attribute(TrueColor,TrueColor)"/>
+		/// instead which auto calculates these.</remarks>
+		/// </summary>
+		/// <param name="trueColorForeground">True color RGB values you would like to use.</param>
+		/// <param name="trueColorBackground">True color RGB values you would like to use.</param>
+		/// <param name="foreground">Simple console color replacement if driver does not support true color.</param>
+		/// <param name="background">Simple console color replacement if driver does not support true color.</param>
+		public Attribute (TrueColor trueColorForeground, TrueColor trueColorBackground, Color foreground, Color background)
+			: this (foreground, background)
+		{
+			TrueColorForeground = trueColorForeground;
+			TrueColorBackground = trueColorBackground;
+		}
 
 		/// <inheritdoc/>
 		public bool Equals (Attribute other)
@@ -281,39 +334,94 @@ namespace Terminal.Gui {
 		/// Default empty attribute.
 		/// </summary>
 		public static readonly Attribute Default = new Attribute ();
-	}
 
-	/// <summary>
-	/// Defines a true color attribute.
-	/// </summary>
-	public class TrueColorAttribute : Attribute {
 		/// <summary>
-		/// Initializes a new instance of the <see cref="TrueColorAttribute"/> struct.
+		/// Populates <see cref="TrueColorForeground"/> and <see cref="TrueColorBackground"/> based on
+		/// <see cref="Foreground"/> and <see cref="Background"/> console colors.
 		/// </summary>
-		/// <param name="foreground">Foreground</param>
-		/// <param name="background">Background</param>
-		public TrueColorAttribute (TrueColor foreground, TrueColor background)
-			: base ((Color)TrueColor.GetCode4 (foreground), (Color)TrueColor.GetCode4 (background))
+		private void PopulateTrueColorsFromConsoleColors ()
 		{
-			TrueColorForeground = foreground;
-			TrueColorBackground = background;
+			TrueColorForeground = ConsoleColorToTrueColor (Foreground);
+			TrueColorBackground = ConsoleColorToTrueColor (Background);
 		}
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="TrueColorAttribute"/> struct
-		///  with the same colors for the foreground and background.
-		/// </summary>
-		/// <param name="color">The color.</param>
-		public TrueColorAttribute (TrueColor color) : this (color, color) { }
+		private TrueColor ConsoleColorToTrueColor (Color consoleColor)
+		{
+			// Brown in cmd is 
+			// C1 9C 00
 
-		/// <summary>
-		/// The foreground color.
-		/// </summary>
-		public TrueColor TrueColorForeground { get; }
-		/// <summary>
-		/// The background color.
-		/// </summary>
-		public TrueColor TrueColorBackground { get; }
+			switch (consoleColor) {
+			case Color.Black: return new TrueColor (0, 0, 0);
+			case Color.Blue: return new TrueColor (0, 0, 0x80);
+			case Color.Green: return new TrueColor (0, 0x80, 0);
+			case Color.Cyan: return new TrueColor (0, 0x80, 0x80);
+			case Color.Red: return new TrueColor (0x80, 0, 0);
+			case Color.Magenta: return new TrueColor (0x80, 0, 0x80);
+			case Color.Brown: return new TrueColor (0xC1, 0x9C, 0x00); // TODO confirm this
+			case Color.Gray: return new TrueColor (0xC0, 0xC0, 0xC0);
+			case Color.DarkGray: return new TrueColor (0x80, 0x80, 0x80);
+			case Color.BrightBlue: return new TrueColor (0, 0, 0xFF);
+			case Color.BrightGreen: return new TrueColor (0, 0xFF, 0);
+			case Color.BrightCyan: return new TrueColor (0, 0xFF, 0xFF);
+			case Color.BrightRed: return new TrueColor (0xFF, 0, 0);
+			case Color.BrightMagenta: return new TrueColor (0xFF, 0, 0xFF);
+			case Color.BrightYellow: return new TrueColor (0xFF, 0xFF, 0);
+			case Color.White: return new TrueColor (0xFF, 0xFF, 0xFF);
+			default: throw new ArgumentOutOfRangeException (nameof (consoleColor));
+			};
+		}
+
+		private void PopulateConsoleColorsFromTrueColors ()
+		{
+			Foreground = TrueColorToConsoleColor (TrueColorForeground);
+			Background = TrueColorToConsoleColor (TrueColorBackground);
+			Value = Make (Foreground, Background).Value;
+		}
+
+		private Color TrueColorToConsoleColor (TrueColor trueColor)
+		{
+			// The points we could return from
+			var lookup = new Dictionary<TrueColor, Color> () {
+				{ new TrueColor(0,0,0),Color.Black},
+				{ new TrueColor (0, 0, 0x80),Color.Blue},
+				{ new TrueColor (0, 0x80, 0),Color.Green},
+				{ new TrueColor (0, 0x80, 0x80),Color.Cyan},
+				{ new TrueColor (0x80, 0, 0),Color.Red},
+				{ new TrueColor (0x80, 0, 0x80),Color.Magenta},
+				{ new TrueColor (0xC1, 0x9C, 0x00),Color.Brown},  // TODO confirm this
+				{ new TrueColor (0xC0, 0xC0, 0xC0),Color.Gray},
+				{ new TrueColor (0x80, 0x80, 0x80),Color.DarkGray},
+				{ new TrueColor (0, 0, 0xFF),Color.BrightBlue},
+				{ new TrueColor (0, 0xFF, 0),Color.BrightGreen},
+				{ new TrueColor (0, 0xFF, 0xFF),Color.BrightCyan},
+				{ new TrueColor (0xFF, 0, 0),Color.BrightRed},
+				{ new TrueColor (0xFF, 0, 0xFF),Color.BrightMagenta },
+				{ new TrueColor (0xFF, 0xFF, 0),Color.BrightYellow},
+				{ new TrueColor (0xFF, 0xFF, 0xFF),Color.White},
+			};
+
+			var distances = lookup.Select (
+				k => Tuple.Create (
+					// the candidate we are considering matching against (RGB)
+					k.Key,
+
+					CalculateDistance (k.Key, trueColor)
+				));
+				
+			// get the closest
+			var match = distances.OrderBy (t => t.Item2).First ();
+
+			return lookup [match.Item1];
+		}
+
+		private float CalculateDistance (TrueColor color1, TrueColor color2)
+		{
+			// use RGB distance
+			return
+				Math.Abs (color1.Red - color2.Red) +
+				Math.Abs (color1.Green - color2.Green) +
+				Math.Abs (color1.Blue - color2.Blue);
+		}
 	}
 
 	/// <summary>
